@@ -32,21 +32,28 @@ async function updateNames() {
     const res = await fetch(url);
     const text = await res.text();
 
-    // Parse Google Sheets JSON
-    const json = JSON.parse(text.substr(47).slice(0, -2));
+    // Parse JSON veilig
+    let json;
+    try {
+      json = JSON.parse(text.substr(47).slice(0, -2));
+    } catch {
+      console.error("Fout bij parsen van Sheet JSON");
+      document.getElementById('names').textContent = "Geen wachtrij momenteel";
+      return;
+    }
 
-    // Veilig rijen ophalen + meest recent bovenaan
+    // Haal rijen op + filter lege rijen + nieuwste bovenaan
     const rows = (json.table.rows || [])
       .map(r => r.c[0]?.v)
       .filter(Boolean)
       .reverse();
 
-    // Toon namen
+    // Toon namen of fallback
     document.getElementById('names').innerHTML = rows.length ? rows.join('<br>') : "Geen wachtrij momenteel";
 
   } catch (e) {
     console.error('Fout bij ophalen Sheet:', e);
-    document.getElementById('names').textContent = "Fout bij laden…";
+    document.getElementById('names').textContent = "Geen wachtrij momenteel";
   }
 }
 
